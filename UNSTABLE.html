@@ -1,0 +1,192 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Code Decay — ARG Terminal</title>
+  <style>
+    :root{--bg:#050406;--muted:#cfcfcf;--accent:#ff1b1b;--glow:0 0 30px rgba(255,27,27,0.12)}
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, 'Roboto Mono', monospace;background:linear-gradient(180deg,#030303 0%, #070709 60%);color:var(--muted);-webkit-user-select:none}.wrap{width:min(1100px,96vw);height:min(820px,92vh);margin:3vh auto;border-radius:10px;padding:0;overflow:hidden;border:2px solid rgba(255,255,255,0.04);position:relative;box-shadow:0 30px 80px rgba(0,0,0,0.8)}
+
+.chrome{height:52px;background:linear-gradient(180deg,rgba(255,255,255,0.02),transparent);display:flex;align-items:center;padding:8px 12px;gap:12px}
+.dots{display:flex;gap:8px}
+.dot{width:12px;height:12px;border-radius:50%;background:#222;border:1px solid rgba(255,255,255,0.03)}
+.title{flex:1;color:#fff;font-weight:700}
+
+.body{display:flex;height:calc(100% - 52px)}
+.leftCol{width:360px;background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.015));border-right:1px solid rgba(255,255,255,0.03);padding:14px;display:flex;flex-direction:column}
+
+.tabs{display:flex;gap:8px;margin-bottom:12px}
+.tab{padding:8px 10px;border-radius:6px;background:rgba(0,0,0,0.25);cursor:pointer;border:1px solid rgba(255,255,255,0.02);font-weight:700}
+.tab.active{background:linear-gradient(180deg, rgba(255,27,27,0.12), rgba(255,27,27,0.05));color:#fff;box-shadow:var(--glow)}
+
+.panel{flex:1;display:flex;flex-direction:column;gap:8px}
+.card{background:linear-gradient(180deg, rgba(0,0,0,0.6), rgba(255,255,255,0.01));padding:12px;border-radius:8px;border:1px dashed rgba(255,255,255,0.03);overflow:hidden}
+.nav-list{display:flex;flex-direction:column;gap:6px}
+.nav-item{padding:8px;border-radius:6px;cursor:pointer;background:rgba(0,0,0,0.35);border:1px solid rgba(255,255,255,0.02)}
+
+.main{flex:1;padding:18px;position:relative}
+.screen{width:100%;height:100%;background:#000;border-radius:6px;padding:12px;color:#8f8f8f;overflow:auto;font-family:ui-monospace,monospace;font-size:14px;line-height:1.4;border:3px inset rgba(255,255,255,0.02)}
+
+.scanline{position:absolute;inset:52px 0 0 0;pointer-events:none;background-image:linear-gradient(rgba(255,255,255,0.015) 0.5px, transparent 0.5px);background-size:100% 3px;mix-blend-mode:overlay;opacity:0.4}
+.flicker{animation:glitch 6s infinite;}
+@keyframes glitch{0%{filter:brightness(1) contrast(1)}5%{filter:brightness(1.3) contrast(1.2)}7%{filter:brightness(.6) contrast(.8) hue-rotate(-10deg)}20%{filter:brightness(1) contrast(1)}50%{filter:brightness(1.05)}55%{filter:brightness(.5) blur(.2px)}100%{filter:brightness(1)}}
+
+.flash{position:absolute;inset:52px 0 0 0;background:radial-gradient(circle at 10% 10%, rgba(255,27,27,0.09), transparent 20%), linear-gradient(180deg, rgba(255,27,27,0.02), transparent);pointer-events:none;mix-blend-mode:screen;opacity:0;transition:opacity .12s}
+.flash.on{opacity:1}
+
+.wrap.sketchy{cursor:crosshair}
+.wrap.sketchy .screen::after{content:' ';position:absolute;right:18px;top:18px;width:14px;height:14px;border:2px solid var(--accent);border-radius:2px;transform:rotate(15deg);box-shadow:var(--glow)}
+
+.cmd-input{width:100%;padding:10px;border-radius:6px;border:1px solid rgba(255,255,255,0.03);background:rgba(0,0,0,0.6);color:#fff;margin-top:8px}
+
+.file{padding:8px;border-radius:6px;background:rgba(0,0,0,0.25);display:flex;justify-content:space-between;align-items:center}
+.file a{color:var(--accent);text-decoration:none}
+
+.banner{position:absolute;left:50%;transform:translateX(-50%);top:8px;background:rgba(255,27,27,0.95);padding:6px 14px;border-radius:6px;color:#111;font-weight:800;letter-spacing:0.04em;display:none}
+.banner.show{display:block;animation:shake .6s both}
+@keyframes shake{10%{transform:translateX(-48%) rotate(-1deg)}30%{transform:translateX(-52%) rotate(1deg)}50%{transform:translateX(-50%) rotate(-1deg)}}
+
+.grain{position:absolute;inset:52px 0 0 0;background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><filter id="n"><feTurbulence baseFrequency="0.9" numOctaves="2"/></filter><rect width="100%" height="100%" filter="url(%23n)" fill="black"/></svg>');mix-blend-mode:overlay;opacity:0.09;pointer-events:none}
+
+.disclaimer{position:absolute;right:12px;bottom:8px;font-size:12px;color:rgba(255,255,255,0.35)}
+
+  </style>
+</head>
+<body>
+  <div class="wrap sketchy" id="wrap">
+    <div class="chrome">
+      <div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+      <div class="title">FREE APKS FREE ROBUX</div>
+      <div style="font-size:12px;color:rgba(255,255,255,0.6)">connected: <span id="ping">--</span></div>
+    </div><div class="body">
+  <div class="leftCol">
+    <div class="tabs">
+      <div class="tab active" data-tab="feed">FEED</div>
+      <div class="tab" data-tab="term">TERMINAL</div>
+      <div class="tab" data-tab="map">MAP</div>
+      <div class="tab" data-tab="files">FILES</div>
+    </div>
+
+    <div class="panel">
+      <div class="card" id="infoCard">
+        <div style="font-weight:800;color:#fff;margin-bottom:6px">SYSTEM SIGNALS</div>
+        <div class="nav-list">
+          <div class="nav-item" id="sig1">SIG: /alpha — anomalous chatter</div>
+          <div class="nav-item" id="sig2">SIG: /core — heartbeat weak</div>
+          <div class="nav-item" id="sig3">SIG: /void — unknown source</div>
+        </div>
+      </div>
+
+      <div class="card" id="cluesCard">
+        <div style="font-weight:800;color:#fff;margin-bottom:6px">LIVE CLUES</div>
+        <div id="clues">-- none --</div>
+      </div>
+
+      <div class="card">
+        <div style="font-weight:800;color:#fff;margin-bottom:6px">ACTIONS</div>
+        <div style="display:flex;gap:8px">
+          <div class="nav-item" id="btn-scan">FORCE SCAN</div>
+          <div class="nav-item" id="btn-hack">OPEN PORT</div>
+          <div class="nav-item" id="btn-burn">BURN TRACE</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="banner" id="banner">! EMERGENCY SIGNAL LOCKED !</div>
+    <div class="screen flicker" id="screen" tabindex="0">
+      <div id="content">
+        <div style="color:#ff6666;font-weight:900;">[12:00:00] SYSTEM: initialising...</div>
+        <div style="margin-top:8px">BUY OR DOWNLOAD APKS USING CMD COMMANDS</div>
+        <div style="height:10px"></div>
+        <div style="color:#ffaeae">Tip: Press <b>~</b> to open the console-like command input. Press <b>F</b> to trigger the flash.</div>
+      </div>
+      <div style="height:16px"></div>
+      <div class="cmd-area" id="cmdArea" style="display:none">
+        <div id="termOut"></div>
+        <input id="cmd" class="cmd-input" placeholder="type command... e.g. peek alpha" />
+      </div>
+    </div>
+
+    <div class="scanline"></div>
+    <div class="flash" id="flash"></div>
+    <div class="grain"></div>
+    <div class="disclaimer">DOUBLE CHECK THE RIGHT COMMANDS</div>
+  </div>
+</div>
+
+  </div>  <script>
+    const wrap = document.getElementById('wrap');
+    const tabs = document.querySelectorAll('.tab');
+    const screen = document.getElementById('screen');
+    const content = document.getElementById('content');
+    const cmdArea = document.getElementById('cmdArea');
+    const cmd = document.getElementById('cmd');
+    const termOut = document.getElementById('termOut');
+    const flash = document.getElementById('flash');
+    const banner = document.getElementById('banner');
+    const ping = document.getElementById('ping');
+    const clues = document.getElementById('clues');
+
+    setTimeout(()=>{ banner.classList.add('show'); flash.classList.add('on'); setTimeout(()=>{ flash.classList.remove('on') },220); }, 600);
+    let pingVal= Math.floor(Math.random()*200)+40; ping.textContent = pingVal+'ms';
+
+    tabs.forEach(t=> t.addEventListener('click', ()=>{
+      document.querySelector('.tab.active').classList.remove('active'); t.classList.add('active');
+      const which = t.dataset.tab; renderTab(which);
+      screen.classList.add('flicker'); setTimeout(()=>screen.classList.remove('flicker'), 900);
+    }));
+
+    function renderTab(which){
+      if(which==='feed'){
+        content.innerHTML = '<div style="color:#ff6666;font-weight:900;">[FEED] live anomalies</div><div style="height:8px"></div><div id="feedList"></div>';
+        const feedList = document.getElementById('feedList');
+        ['[12:01] ERR packet mismatch','[12:02] INJ foreign signature','[12:03] DRIFT time desync','[12:04] HISS background rise'].forEach(l=>{ const d=document.createElement('div'); d.textContent=l; feedList.appendChild(d)});
+      } else if(which==='term'){
+        content.innerHTML = '<div style="color:#ff6666;font-weight:900;">[TERMINAL]</div><div style="height:8px"></div><div id="termCon">Welcome to shell — type for output</div>'; cmdArea.style.display='block'; cmd.focus();
+      } else if(which==='map'){
+        content.innerHTML = '<div style="color:#ff6666;font-weight:900;">[MAP]</div><div style="height:8px"></div><div>— node: ALPHA — offline</div><div>— node: CORE — unstable</div><div>— node: VOID — signal strong</div>';
+      } else if(which==='files'){
+        content.innerHTML = '<div style="color:#ff6666;font-weight:900;">[FILES]</div><div style="height:8px"></div><div class="file"><span>readme.txt</span><a href="#" data-file="readme">OPEN</a></div><div class="file" style="margin-top:6px"><span>fragment.bin</span><a href="#" data-file="fragment">OPEN</a></div>';
+        setTimeout(()=>{ document.querySelectorAll('[data-file]').forEach(el=> el.addEventListener('click', (e)=>{ e.preventDefault(); openFakeFile(el.dataset.file); })); },40);
+      }
+    }
+
+    renderTab('feed');
+
+    cmd.addEventListener('keydown', (e)=>{
+      if(e.key==='Enter'){ const val = cmd.value.trim(); handleCmd(val); cmd.value=''; }
+    });
+
+    function handleCmd(v){
+      const out = document.createElement('div'); out.style.marginTop='6px';
+      if(!v){ out.textContent='> (nothing)'; termOut.appendChild(out); return; }
+      out.textContent='> '+v; termOut.appendChild(out);
+      const parts = v.split(' ');
+      if(parts[0]==='peek'){ const target = parts[1]||'alpha'; termOut.appendChild(makeLine('[peek] scanning '+target)); instantClue('fragment@'+target); }
+      else if(parts[0]==='burn'){ termOut.appendChild(makeLine('[burn] trace removed')); flashOnce(); }
+      else if(parts[0]==='signal'){ termOut.appendChild(makeLine('[signal] forcing red overlay')); flash.classList.add('on'); setTimeout(()=>flash.classList.remove('on'),400); }
+      else { termOut.appendChild(makeLine('[err] unknown command')); }
+      termOut.parentElement.scrollTop = termOut.parentElement.scrollHeight;
+    }
+    function makeLine(t){ const d=document.createElement('div'); d.textContent=t; d.style.color='#ff9a9a'; return d; }
+
+    function openFakeFile(name){
+      if(name==='readme'){ content.innerHTML='<div style="color:#ff6666;font-weight:900;">readme.txt</div><pre style="margin-top:8px">CODE DECAY - fragments\nfind the missing bytes: 4F 2A ?? 9C</pre>'; }else if(name==='fragment'){ content.innerHTML='<div style="color:#ff6666;font-weight:900;">fragment.bin (hex dump)</div><pre style="margin-top:8px">00 1F A3 4B 7C 9D ?? ??</pre>'; }
+  wrap.classList.add('sketchy'); banner.classList.add('show'); setTimeout(()=>banner.classList.remove('show'),1500);
+}
+
+document.getElementById('btn-scan').addEventListener('click', ()=>{ clues.textContent='scanned: fragment@void'; aggressivePulse(); });
+document.getElementById('btn-hack').addEventListener('click', ()=>{ clues.textContent='port opened -> /alpha/ghost'; flashOnce(); });
+document.getElementById('btn-burn').addEventListener('click', ()=>{ clues.textContent='trace: burned'; banner.classList.add('show'); setTimeout(()=>banner.classList.remove('show'),1200); });
+
+function instantClue(t){ clues.textContent = 'found: '+t; aggressivePulse(); }
+function flashOnce(){ flash.classList.add('on'); setTimeout(()=>flash.classList.remove('on'),220); }
+function aggressivePulse(){ wrap.style.transform='scale(1.01)'; setTimeout(()=>wrap.style.transform='scale(1)',160); }
+
+document.addEventListener('keydown', (e)=>{
+  if(e.key==='~'){ cmdArea.style.display = cmdArea.style.display==='block
